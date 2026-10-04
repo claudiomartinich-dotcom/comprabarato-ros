@@ -1,0 +1,77 @@
+aceite
+arroz
+fideos
+tallarines
+harina
+azucar
+sal
+yerba
+cafe
+te
+leche
+yogur
+queso
+manteca
+crema
+huevos
+pan
+galletitas
+galletas
+tostadas
+mermelada
+dulce de leche
+miel
+cacao
+cereal
+polenta
+lentejas
+garbanzos
+tomate
+pure de tomate
+salsa
+mayonesa
+mostaza
+ketchup
+vinagre
+atun
+caballa
+arvejas
+choclo
+jamon
+salame
+salchichas
+hamburguesas
+milanesas
+pollo
+carne
+pescado
+papas fritas
+gaseosa
+agua
+jugo
+cerveza
+vino
+soda
+detergente
+lavandina
+jabon
+shampoo
+desodorante
+papel higienico
+rollo de cocina
+servilletas
+suavizante
+limpiador
+esponja
+bolsas de residuos
+pañales
+dentifrico
+cepillo
+alimento perro
+alimento gato
+chocolate
+alfajor
+snack
+helado
+levadura
+premezcla
