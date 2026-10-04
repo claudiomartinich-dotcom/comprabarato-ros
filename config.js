@@ -3,5 +3,5 @@
 const FUENTES = [
   { nombre: "DAR", url: "data/dar.csv" },
   // { nombre: "COTO", url: "data/coto.csv" },   // se activa cuando sumemos COTO
-  { nombre: "Super Empleados", url: "PEGAR_ACA_EL_LINK_CSV_DE_GOOGLE_SHEETS" },
+  { nombre: "Super Empleados", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR3pfVG-p5ypuhA0tShrm43pXlRuLtvah7eJRwCXYmzTElG42YkVrO0QHRYIqQItI4VtlU9rjI5ynUC/pub?gid=0&single=true&output=csv" },
 ];
