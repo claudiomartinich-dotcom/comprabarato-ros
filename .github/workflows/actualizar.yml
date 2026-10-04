@@ -6,7 +6,7 @@ on:
 permissions:
   contents: write
 jobs:
-  dar:
+  precios:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,10 +14,16 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install requests
-      - run: python scraper/dar_scraper.py
-      - run: |
+      - name: DAR
+        continue-on-error: true
+        run: python scraper/dar_scraper.py
+      - name: COTO
+        continue-on-error: true
+        run: python scraper/coto_scraper.py
+      - name: Guardar cambios
+        run: |
           git config user.name "actualizador"
           git config user.email "actualizador@users.noreply.github.com"
           git add data
-          git diff --cached --quiet || git commit -m "Actualizar precios DAR"
+          git diff --cached --quiet || git commit -m "Actualizar precios"
           git push
