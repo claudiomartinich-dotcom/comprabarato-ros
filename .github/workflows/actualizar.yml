@@ -20,6 +20,9 @@ jobs:
       - name: COTO
         continue-on-error: true
         run: python scraper/coto_scraper.py
+      - name: Carrefour
+        continue-on-error: true
+        run: python scraper/carrefour_scraper.py
       - name: Guardar cambios
         run: |
           git config user.name "actualizador"
