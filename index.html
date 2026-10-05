@@ -151,7 +151,18 @@ function claveEan(v){
   const d = t.replace(/\D/g,"").replace(/^0+/,"");
   return d.length>=7 && d.length<=14 ? d : "";
 }
-function tokens(t){ return norm(t).replace(/,/g,".").replace(/(\d)([a-z])/g,"$1 $2").split(/[^a-z0-9.]+/).map(x => x.replace(/\.+$/,"")).filter(x => x.length>1 || /\d/.test(x)); }
+const STOP = new Set(["de","del","la","el","en","con","c","y","g","gr","grs","grm","gm","kg","kgm","ml","cc","l","lt","lts","un","uni","unid","paq","paquete","pack","bot","botella","pet","x","sin","para"]);
+const stem = x => x.length>3 && x.endsWith("s") ? x.slice(0,-1) : x;
+function tokens(t){ return norm(t).replace(/,/g,".").replace(/(\d)([a-z])/g,"$1 $2").split(/[^a-z0-9.]+/).map(x => x.replace(/\.+$/,"")).filter(x => (x.length>1 || /\d/.test(x)) && !STOP.has(x)).map(stem); }
+const igual = (a,b) => a===b || (Math.min(a.length,b.length)>=4 && (a.startsWith(b) || b.startsWith(a)));
+function similitud(tr, tc){
+  const num = x => /^\d/.test(x);
+  const nr = tr.filter(num), nc = tc.filter(num);
+  if(nr.length && nc.length && !nr.some(a => nc.some(b => a===b))) return 0;
+  const m = tr.filter(a => tc.some(b => igual(a,b))).length;
+  const sc = m / Math.min(tr.length, tc.length || 1);
+  return ((m>=4 && sc>=0.75) || (m>=3 && sc===1)) ? sc : 0;
+}
 
 function filaHtml(h, best, min, sim){
   const d = best ? "" : `<div class="diff">+${money(h.n-min)}<br>+${Math.round((h.n/min-1)*100)}%</div>`;
@@ -174,8 +185,7 @@ function buscarCodigo(q, res, sum){
   let similares=[];
   for(const s of Object.keys(db)){
     if(conCodigo.has(s)) continue;
-    const pts = db[s].items.map(it => { const ti = new Set(tokens(it.p)); return {s, ...it, sc: tr.filter(t => ti.has(t)).length / tr.length}; })
-      .filter(x => x.sc >= 0.75).sort((a,b)=>b.sc-a.sc || a.n-b.n).slice(0,3);
+    const pts = db[s].items.map(it => ({s, ...it, sc: similitud(tr, tokens(it.p))})).filter(x => x.sc > 0).sort((a,b)=>b.sc-a.sc || a.n-b.n).slice(0,3);
     similares = similares.concat(pts);
   }
   const todos = exactos.map(x => ({...x, sim:false})).concat(similares.map(x => ({...x, sim:true}))).sort((a,b)=>a.n-b.n);
