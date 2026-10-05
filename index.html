@@ -34,6 +34,7 @@ input:focus{outline:3px solid rgba(25,156,54,.35);outline-offset:1px;border-colo
 .frame{position:relative;width:80%;max-width:420px;height:26%;border:3px solid var(--green);border-radius:14px;box-shadow:0 0 0 100vmax rgba(0,0,0,.5)}
 #scanMsg{position:absolute;left:12px;right:12px;bottom:calc(120px + env(safe-area-inset-bottom));color:#fff;text-align:center;font-weight:600}
 #scanClose{position:absolute;bottom:calc(40px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#fff;color:var(--navy);border:0;border-radius:99px;padding:12px 28px;font:inherit;font-weight:700}
+.tag.eq{background:#fff;color:var(--green);border:1px solid var(--green)}
 .tag.sim{background:#fff3d6;color:#8a5a00}
 .group{margin:16px 2px 8px;color:var(--navy);font-weight:700;font-size:.9rem}
 .summary{color:var(--navy);font-size:.92rem;margin:4px 2px 10px;font-weight:600}
@@ -153,8 +154,8 @@ function claveEan(v){
 function tokens(t){ return norm(t).replace(/,/g,".").replace(/(\d)([a-z])/g,"$1 $2").split(/[^a-z0-9.]+/).map(x => x.replace(/\.+$/,"")).filter(x => x.length>1 || /\d/.test(x)); }
 
 function filaHtml(h, best, min, sim){
-  const d = (best||sim) ? "" : `<div class="diff">+${money(h.n-min)}<br>+${Math.round((h.n/min-1)*100)}%</div>`;
-  return `<div class="row${best?" best":""}"><div class="info"><div class="name">${esc(h.p)}</div><div class="meta"><span class="chip" style="background:${color(h.s)}">${esc(h.s)}</span>${best?'<span class="tag">más barato</span>':""}${sim?'<span class="tag sim">parecido</span>':""}${h.o?"<span>oferta</span>":""}</div></div><div><div class="price">${money(h.n)}</div>${d}</div></div>`;
+  const d = best ? "" : `<div class="diff">+${money(h.n-min)}<br>+${Math.round((h.n/min-1)*100)}%</div>`;
+  return `<div class="row${best?" best":""}"><div class="info"><div class="name">${esc(h.p)}</div><div class="meta"><span class="chip" style="background:${color(h.s)}">${esc(h.s)}</span>${best?'<span class="tag">más barato</span>':""}${sim?'<span class="tag sim">parecido</span>':'<span class="tag eq">mismo código</span>'}${h.o?"<span>oferta</span>":""}</div></div><div><div class="price">${money(h.n)}</div>${d}</div></div>`;
 }
 
 function buscarCodigo(q, res, sum){
@@ -167,10 +168,9 @@ function buscarCodigo(q, res, sum){
     return;
   }
   exactos.sort((a,b)=>a.n-b.n);
-  const min = exactos[0].n, ref = exactos[0];
+  const ref = exactos[0];
   const conCodigo = new Set(exactos.map(x=>x.s));
   const tr = tokens(ref.p);
-  let html = exactos.map(h => filaHtml(h, h.n===min, min, false)).join("");
   let similares=[];
   for(const s of Object.keys(db)){
     if(conCodigo.has(s)) continue;
@@ -178,9 +178,10 @@ function buscarCodigo(q, res, sum){
       .filter(x => x.sc >= 0.75).sort((a,b)=>b.sc-a.sc || a.n-b.n).slice(0,3);
     similares = similares.concat(pts);
   }
-  if(similares.length) html += '<div class="group">Parecidos en otros súper (verificá que sea el mismo)</div>' + similares.map(h => filaHtml(h,false,min,true)).join("");
-  sum.textContent = `${ref.p} · más barato: ${exactos[0].s} a ${money(min)}.`;
-  res.innerHTML = html;
+  const todos = exactos.map(x => ({...x, sim:false})).concat(similares.map(x => ({...x, sim:true}))).sort((a,b)=>a.n-b.n);
+  const min = todos[0].n;
+  sum.textContent = `${ref.p} · más barato: ${todos[0].s} a ${money(min)}` + (todos[0].sim ? " (parecido: verificá que sea el mismo)." : ".");
+  res.innerHTML = todos.map(h => filaHtml(h, h.n===min, min, h.sim)).join("");
 }
 
 function buscar(){
