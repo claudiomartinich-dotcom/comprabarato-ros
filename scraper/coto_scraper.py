@@ -73,6 +73,7 @@ def parsear(resultado, sucursal=SUCURSAL):
         "precio": f"{precio:.2f}",
         "oferta": oferta,
         "precio_regular": f"{regular:.2f}",
+        "ean": str(d.get("product_main_ean") or ""),
     }
 
 
@@ -148,9 +149,9 @@ def main():
     Path("data").mkdir(exist_ok=True)
     with open("data/coto.csv", "w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f)
-        w.writerow(["super", "codigo", "producto", "precio", "oferta", "fecha", "precio_regular"])
+        w.writerow(["super", "codigo", "producto", "precio", "oferta", "fecha", "precio_regular", "ean"])
         for p in todos.values():
-            w.writerow(["COTO", p["codigo"], p["producto"], p["precio"], p["oferta"], hoy, p["precio_regular"]])
+            w.writerow(["COTO", p["codigo"], p["producto"], p["precio"], p["oferta"], hoy, p["precio_regular"], p["ean"]])
     print(f"Listo: {len(todos)} productos guardados en data/coto.csv")
 
 
