@@ -11,6 +11,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Comprá Barato">
+<script>
+try{
+  var st = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+  if(st && !sessionStorage.getItem("splash_visto")){ document.documentElement.className += " splash-on"; sessionStorage.setItem("splash_visto","1"); }
+}catch(e){}
+</script>
 <style>
 :root{--bg:#eef4fb;--card:#fff;--ink:#0b2347;--mute:#56657f;--line:#d3deec;--navy:#022d60;--green:#199c36;--greenbg:#e8f6ec;--red:#ed3c36;--blue:#047ec9;--yellow:#fdc71c;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -66,9 +72,25 @@ input:focus{outline:3px solid rgba(25,156,54,.35);outline-offset:1px;border-colo
 .aviso{margin:18px 2px 0;font-size:.82rem;color:var(--mute);font-style:italic}
 .foot{margin-top:22px;font-size:.82rem;color:var(--mute);line-height:1.6}
 .foot .bad{color:#c0392b}
+#splash{display:none;position:fixed;inset:0;z-index:50;background:#fff;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.splash-on #splash{display:flex;animation:splashFade .4s ease 1.5s forwards}
+@keyframes splashFade{to{opacity:0;visibility:hidden}}
+#splash img{width:min(62vw,260px);height:auto;display:block}
+#splash small{font-size:12px;font-weight:700;letter-spacing:.3em;padding-left:.3em;color:var(--mute);text-transform:uppercase}
+.guia{position:fixed;inset:0;z-index:40;background:rgba(2,45,96,.6);display:flex;align-items:flex-end;justify-content:center}
+.guia[hidden]{display:none}
+.guia-c{position:relative;width:100%;max-width:520px;max-height:92%;overflow:auto;background:#fff;border-radius:20px 20px 0 0;padding:20px 18px calc(18px + env(safe-area-inset-bottom))}
+.guia h2{margin:0 40px 12px 0;font-size:1.15rem;color:var(--navy)}
+.guia ol{margin:0 0 14px;padding-left:22px;line-height:1.45}
+.guia li{margin-bottom:10px}
+.guia li small{display:block;margin-top:2px;color:var(--mute)}
+.guia .x{position:absolute;top:6px;right:6px;width:42px;height:42px;background:none;border:0;font-size:26px;color:var(--mute);cursor:pointer}
+.guia .btn{margin-top:0;background:var(--navy);color:#fff}
+.guia .flecha{margin-top:12px;text-align:center;font-weight:700;color:var(--green)}
 </style>
 </head>
 <body>
+<div id="splash" aria-hidden="true"><img src="logo.png" alt=""><small>BY THYMAR</small></div>
 <header class="top"><img src="logo.png" alt="Comprá Barato.Ros"><h1 class="sr">Comprá Barato.Ros</h1></header>
 <main>
   <div class="search"><input id="q" type="search" placeholder="Buscá un producto o escaneá el código" autocomplete="off" aria-label="Buscar producto">
@@ -86,6 +108,20 @@ input:focus{outline:3px solid rgba(25,156,54,.35);outline-offset:1px;border-colo
     <button id="compartir" class="btn compartir" type="button">📲 Compartir con amigos</button>
   </div>
 </main>
+<div id="guia" class="guia" hidden role="dialog" aria-modal="true" aria-labelledby="guiaT">
+  <div class="guia-c">
+    <button class="x" id="guiaX" type="button" aria-label="Cerrar">×</button>
+    <h2 id="guiaT">Instalar en tu iPhone</h2>
+    <ol>
+      <li>Abrí esta página en <b>Safari</b>.<small>Si llegaste desde WhatsApp u otra app, copiá el link con el botón de abajo y pegalo en Safari.</small></li>
+      <li>Tocá el botón <b>Compartir</b> ⬆️ (el cuadrado con una flecha hacia arriba, en la barra de abajo).</li>
+      <li>Deslizá la lista hacia arriba y tocá <b>“Agregar a pantalla de inicio”</b>.<small>Si no la ves, tocá “Ver más” o seguí deslizando.</small></li>
+      <li>Tocá <b>“Agregar”</b>. Listo: aparece el carrito como una app más.</li>
+    </ol>
+    <button id="copiarLink" class="btn" type="button">📋 Copiar link</button>
+    <div class="flecha">⬇️ El botón Compartir está en la barra de abajo</div>
+  </div>
+</div>
 <script src="config.js"></script>
 <script>
 const KEY = "comparador_precios_v2";
@@ -329,11 +365,20 @@ function mostrarInst(){ if(!enApp() && !instCerrado) inst.hidden = false; }
 window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); promptInstalar = e; mostrarInst(); });
 window.addEventListener("appinstalled", () => { inst.hidden = true; promptInstalar = null; evento("app-instalada","App instalada"); });
 if(esIOS && !enApp()){
-  document.getElementById("instTxt").innerHTML = "📲 Para instalarla: tocá <b>Compartir</b> (⬆️) y después <b>Agregar a pantalla de inicio</b>";
-  document.getElementById("instBtn").hidden = true;
+  document.getElementById("instTxt").innerHTML = "📲 Instalá la app en tu iPhone: queda como un ícono más";
+  document.getElementById("instBtn").textContent = "Cómo";
   mostrarInst();
 }
+const guia = document.getElementById("guia");
+document.getElementById("guiaX").addEventListener("click", () => { guia.hidden = true; });
+guia.addEventListener("click", e => { if(e.target === guia) guia.hidden = true; });
+document.getElementById("copiarLink").addEventListener("click", async () => {
+  const b = document.getElementById("copiarLink");
+  try{ await navigator.clipboard.writeText(URL_APP); b.textContent = "✅ ¡Copiado! Pegalo en Safari"; }
+  catch(e){ b.textContent = "Mantené apretado el link para copiarlo: " + URL_APP; }
+});
 document.getElementById("instBtn").addEventListener("click", async () => {
+  if(esIOS){ evento("click-como-instalar-ios","Click en cómo instalar (iPhone)"); guia.hidden = false; return; }
   if(!promptInstalar) return;
   evento("click-instalar","Click en instalar");
   promptInstalar.prompt();
