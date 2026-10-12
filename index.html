@@ -36,9 +36,20 @@ input:focus{outline:3px solid rgba(25,156,54,.35);outline-offset:1px;border-colo
 #scanClose{position:absolute;bottom:calc(40px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#fff;color:var(--navy);border:0;border-radius:99px;padding:12px 28px;font:inherit;font-weight:700}
 .tag.eq{background:#fff;color:var(--green);border:1px solid var(--green)}
 .tag.sim{background:#fff3d6;color:#8a5a00}
-.don{display:block;margin-top:26px;padding:12px 14px;border:1px dashed #e0b43a;background:#fff9e6;border-radius:12px;color:var(--navy);text-decoration:none;font-size:.88rem;line-height:1.4;text-align:center}
-.don[hidden]{display:none}
-.don:active{background:#fff1c2}
+.btn{display:block;width:100%;padding:13px 12px;margin-top:8px;border:0;border-radius:12px;font:inherit;font-weight:800;text-align:center;text-decoration:none;cursor:pointer}
+.btn[hidden]{display:none}
+.btn:active{transform:scale(.98)}
+.btn.cafe{background:var(--yellow);color:var(--navy)}
+.btn.compartir{background:#25d366;color:#fff}
+.apoyo{position:relative;margin:14px 0;padding:16px 14px 14px;border-radius:16px;background:var(--navy);color:#fff;text-align:center;box-shadow:0 2px 8px rgba(2,45,96,.25)}
+.apoyo[hidden]{display:none}
+.apoyo p{margin:0 22px 8px;font-size:.92rem;line-height:1.4}
+.apoyo .x{position:absolute;top:2px;right:2px;width:42px;height:42px;background:none;border:0;color:#fff;font-size:26px;line-height:1;cursor:pointer;opacity:.85}
+.inst{display:flex;align-items:center;gap:8px;margin:0 0 10px;padding:8px 6px 8px 12px;border-radius:12px;background:#fff;border:2px solid var(--green)}
+.inst[hidden]{display:none}
+.inst span{flex:1;font-size:.88rem;line-height:1.35;color:var(--navy);font-weight:600}
+.inst .btn{width:auto;margin:0;padding:10px 16px;background:var(--green);color:#fff}
+.inst .x{background:none;border:0;color:var(--mute);font-size:24px;line-height:1;padding:6px 10px;cursor:pointer}
 .group{margin:16px 2px 8px;color:var(--navy);font-weight:700;font-size:.9rem}
 .summary{color:var(--navy);font-size:.92rem;margin:4px 2px 10px;font-weight:600}
 .row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-left:6px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:8px}
@@ -63,11 +74,17 @@ input:focus{outline:3px solid rgba(25,156,54,.35);outline-offset:1px;border-colo
   <div class="search"><input id="q" type="search" placeholder="Buscá un producto o escaneá el código" autocomplete="off" aria-label="Buscar producto">
     <button class="scanbtn" id="scanOpen" type="button" aria-label="Escanear código de barras"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8v8M10 8v8M13 8v8M16 8v8M18 8v8" stroke-width="1.8"/></svg></button></div>
   <div id="scan" hidden><video id="scanVideo" playsinline muted></video><div class="frame"></div><div id="scanMsg"></div><button id="scanClose" type="button">Cancelar</button></div>
+  <div id="inst" class="inst" hidden><span id="instTxt">📲 Instalá la app en tu celular, queda como un ícono más</span><button id="instBtn" class="btn" type="button">Instalar</button><button id="instX" class="x" type="button" aria-label="Ahora no">×</button></div>
   <div id="summary" class="summary"></div>
   <div id="results"></div>
   <p class="aviso">Precios de referencia, pueden variar según sucursal.</p>
   <div id="foot" class="foot"></div>
-  <a id="don" class="don" hidden target="_blank" rel="noopener noreferrer">¿Te ayudé a ahorrar hoy? Invitame un Cafecito para seguir manteniendo las listas ☕</a>
+  <div id="apoyo" class="apoyo" hidden>
+    <button class="x" id="apoyoX" type="button" aria-label="Cerrar">×</button>
+    <p>¿Te ayudó a ahorrar? La app es gratis y la mantengo yo, actualizando las listas.</p>
+    <a id="don" class="btn cafe" hidden target="_blank" rel="noopener noreferrer">☕ Invitame un Cafecito →</a>
+    <button id="compartir" class="btn compartir" type="button">📲 Compartir con amigos</button>
+  </div>
 </main>
 <script src="config.js"></script>
 <script>
@@ -198,15 +215,24 @@ function buscarCodigo(q, res, sum){
   const min = todos[0].n;
   sum.textContent = `${ref.p} · más barato: ${todos[0].s} a ${money(min)}` + (todos[0].sim ? " (parecido: verificá que sea el mismo)." : ".");
   res.innerHTML = todos.map(h => filaHtml(h, h.n===min, min, h.sim)).join("");
+  ubicarApoyo();
 }
 
 function evento(ruta, titulo){ try{ if(window.goatcounter && window.goatcounter.count) window.goatcounter.count({path:ruta, title:titulo, event:true}); }catch(e){} }
 let donOk = false;
-try{ if(typeof CAFECITO_URL !== "undefined" && /^https:\/\/cafecito\.app\/\w/.test(CAFECITO_URL)){ document.getElementById("don").href = CAFECITO_URL; donOk = true; } }catch(e){}
+try{ if(typeof CAFECITO_URL !== "undefined" && /^https:\/\/cafecito\.app\/\w/.test(CAFECITO_URL)){ const a = document.getElementById("don"); a.href = CAFECITO_URL; a.hidden = false; donOk = true; } }catch(e){}
+
+const apoyo = document.getElementById("apoyo");
+let apoyoCerrado = false;
+try{ apoyoCerrado = localStorage.getItem("apoyo_cerrado") === "1"; }catch(e){}
+// Pone el cartel después del 3.er resultado para que se vea sin scrollear toda la lista
+function ubicarApoyo(){ if(apoyo.hidden) return; const filas = document.querySelectorAll("#results .row"); if(filas.length > 3) filas[2].after(apoyo); }
 
 function buscar(){
   const q = document.getElementById("q").value.trim();
-  if(q && donOk){ const d = document.getElementById("don"); if(d.hidden){ d.hidden = false; evento("banner-cafecito-visto","Banner Cafecito visto"); } }
+  const mainEl = document.querySelector("main");
+  if(apoyo.parentElement !== mainEl) mainEl.appendChild(apoyo);   // lo saco de la lista antes de redibujarla
+  if(q && !apoyoCerrado && apoyo.hidden){ apoyo.hidden = false; evento("banner-cafecito-visto","Banner Cafecito visto"); }
   const res = document.getElementById("results"), sum = document.getElementById("summary");
   if(!Object.keys(db).length){ sum.textContent=""; res.innerHTML='<div class="empty">Todavía no hay precios cargados. Si recién se instaló, esperá a la primera actualización automática.</div>'; return; }
   if(!q){ sum.textContent=""; res.innerHTML='<div class="empty">Escribí un producto o escaneá un código de barras para ver dónde conviene comprarlo.</div>'; return; }
@@ -219,6 +245,7 @@ function buscar(){
   const min = hits[0].n, shown = hits.slice(0,150);
   sum.textContent = `${hits.length} resultados. Más barato: ${hits[0].s} a ${money(min)}.` + (hits.length>150?" Mostrando los 150 más baratos.":"");
   res.innerHTML = shown.map(h => filaHtml(h, h.n===min, min, false)).join("");
+  ubicarApoyo();
 }
 
 /* ---- Escáner de código de barras ---- */
@@ -275,6 +302,48 @@ $("scanOpen").addEventListener("click", abrirScanner);
 $("scanClose").addEventListener("click", cerrarScanner);
 
 document.getElementById("don").addEventListener("click", () => evento("click-cafecito","Click en banner Cafecito"));
+document.getElementById("apoyoX").addEventListener("click", () => {
+  apoyo.hidden = true; apoyoCerrado = true;
+  try{ localStorage.setItem("apoyo_cerrado","1"); }catch(e){}
+});
+
+/* ---- Compartir ---- */
+const URL_APP = new URL("./", location.href).href;
+const TXT_COMPARTIR = "Comprá Barato: compará precios de supermercados en segundos y mirá dónde conviene comprar. Es gratis 🛒";
+document.getElementById("compartir").addEventListener("click", async () => {
+  evento("click-compartir","Click en compartir");
+  try{
+    if(navigator.share){ await navigator.share({title:"Comprá Barato.Ros", text:TXT_COMPARTIR, url:URL_APP}); return; }
+  }catch(e){ if(e && e.name === "AbortError") return; }
+  window.open("https://wa.me/?text=" + encodeURIComponent(TXT_COMPARTIR + " " + URL_APP), "_blank", "noopener");
+});
+
+/* ---- Instalar la app (se oculta sola cuando ya está instalada) ---- */
+const inst = document.getElementById("inst");
+const enApp = () => (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+const esIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+let instCerrado = false;
+try{ instCerrado = localStorage.getItem("inst_cerrado") === "1"; }catch(e){}
+let promptInstalar = null;
+function mostrarInst(){ if(!enApp() && !instCerrado) inst.hidden = false; }
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); promptInstalar = e; mostrarInst(); });
+window.addEventListener("appinstalled", () => { inst.hidden = true; promptInstalar = null; evento("app-instalada","App instalada"); });
+if(esIOS && !enApp()){
+  document.getElementById("instTxt").innerHTML = "📲 Para instalarla: tocá <b>Compartir</b> (⬆️) y después <b>Agregar a pantalla de inicio</b>";
+  document.getElementById("instBtn").hidden = true;
+  mostrarInst();
+}
+document.getElementById("instBtn").addEventListener("click", async () => {
+  if(!promptInstalar) return;
+  evento("click-instalar","Click en instalar");
+  promptInstalar.prompt();
+  try{ await promptInstalar.userChoice; }catch(e){}
+  promptInstalar = null; inst.hidden = true;
+});
+document.getElementById("instX").addEventListener("click", () => {
+  inst.hidden = true; instCerrado = true;
+  try{ localStorage.setItem("inst_cerrado","1"); }catch(e){}
+});
 document.getElementById("q").addEventListener("input", buscar);
 leer(); buscar(); pie();
 Promise.all(FUENTES.map(cargarFuente)).then(() => { buscar(); pie(); });
