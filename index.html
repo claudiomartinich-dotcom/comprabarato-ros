@@ -200,12 +200,13 @@ function buscarCodigo(q, res, sum){
   res.innerHTML = todos.map(h => filaHtml(h, h.n===min, min, h.sim)).join("");
 }
 
+function evento(ruta, titulo){ try{ if(window.goatcounter && window.goatcounter.count) window.goatcounter.count({path:ruta, title:titulo, event:true}); }catch(e){} }
 let donOk = false;
 try{ if(typeof CAFECITO_URL !== "undefined" && /^https:\/\/cafecito\.app\/\w/.test(CAFECITO_URL)){ document.getElementById("don").href = CAFECITO_URL; donOk = true; } }catch(e){}
 
 function buscar(){
   const q = document.getElementById("q").value.trim();
-  if(q && donOk) document.getElementById("don").hidden = false;
+  if(q && donOk){ const d = document.getElementById("don"); if(d.hidden){ d.hidden = false; evento("banner-cafecito-visto","Banner Cafecito visto"); } }
   const res = document.getElementById("results"), sum = document.getElementById("summary");
   if(!Object.keys(db).length){ sum.textContent=""; res.innerHTML='<div class="empty">Todavía no hay precios cargados. Si recién se instaló, esperá a la primera actualización automática.</div>'; return; }
   if(!q){ sum.textContent=""; res.innerHTML='<div class="empty">Escribí un producto o escaneá un código de barras para ver dónde conviene comprarlo.</div>'; return; }
@@ -273,6 +274,7 @@ async function abrirScanner(){
 $("scanOpen").addEventListener("click", abrirScanner);
 $("scanClose").addEventListener("click", cerrarScanner);
 
+document.getElementById("don").addEventListener("click", () => evento("click-cafecito","Click en banner Cafecito"));
 document.getElementById("q").addEventListener("input", buscar);
 leer(); buscar(); pie();
 Promise.all(FUENTES.map(cargarFuente)).then(() => { buscar(); pie(); });
