@@ -6,3 +6,4 @@ const FUENTES = [
   { nombre: "Carrefour", url: "data/carrefour.csv" },
   { nombre: "Super Empleados", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR3pfVG-p5ypuhA0tShrm43pXlRuLtvah7eJRwCXYmzTElG42YkVrO0QHRYIqQItI4VtlU9rjI5ynUC/pub?gid=0&single=true&output=csv" },
 ];
+const CAFECITO_URL = "https://cafecito.app/thymar";
