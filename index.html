@@ -36,6 +36,9 @@ input:focus{outline:3px solid rgba(25,156,54,.35);outline-offset:1px;border-colo
 #scanClose{position:absolute;bottom:calc(40px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#fff;color:var(--navy);border:0;border-radius:99px;padding:12px 28px;font:inherit;font-weight:700}
 .tag.eq{background:#fff;color:var(--green);border:1px solid var(--green)}
 .tag.sim{background:#fff3d6;color:#8a5a00}
+.don{display:block;margin-top:26px;padding:12px 14px;border:1px dashed #e0b43a;background:#fff9e6;border-radius:12px;color:var(--navy);text-decoration:none;font-size:.88rem;line-height:1.4;text-align:center}
+.don[hidden]{display:none}
+.don:active{background:#fff1c2}
 .group{margin:16px 2px 8px;color:var(--navy);font-weight:700;font-size:.9rem}
 .summary{color:var(--navy);font-size:.92rem;margin:4px 2px 10px;font-weight:600}
 .row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-left:6px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:8px}
@@ -62,6 +65,7 @@ input:focus{outline:3px solid rgba(25,156,54,.35);outline-offset:1px;border-colo
   <div id="summary" class="summary"></div>
   <div id="results"></div>
   <div id="foot" class="foot"></div>
+  <a id="don" class="don" hidden target="_blank" rel="noopener noreferrer">¿Te ayudé a ahorrar hoy? Invitame un Cafecito para seguir manteniendo las listas ☕</a>
 </main>
 <script src="config.js"></script>
 <script>
@@ -194,8 +198,12 @@ function buscarCodigo(q, res, sum){
   res.innerHTML = todos.map(h => filaHtml(h, h.n===min, min, h.sim)).join("");
 }
 
+let donOk = false;
+try{ if(typeof CAFECITO_URL !== "undefined" && /^https:\/\/cafecito\.app\/\w/.test(CAFECITO_URL)){ document.getElementById("don").href = CAFECITO_URL; donOk = true; } }catch(e){}
+
 function buscar(){
   const q = document.getElementById("q").value.trim();
+  if(q && donOk) document.getElementById("don").hidden = false;
   const res = document.getElementById("results"), sum = document.getElementById("summary");
   if(!Object.keys(db).length){ sum.textContent=""; res.innerHTML='<div class="empty">Todavía no hay precios cargados. Si recién se instaló, esperá a la primera actualización automática.</div>'; return; }
   if(!q){ sum.textContent=""; res.innerHTML='<div class="empty">Escribí un producto o escaneá un código de barras para ver dónde conviene comprarlo.</div>'; return; }
